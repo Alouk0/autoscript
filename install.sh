@@ -20,4 +20,11 @@ apt-get install -y curl wget jq > /dev/null 2>&1
 
 echo "[+] Installation complete!"
 echo "========================================================"
-echo "Next step: We will link your menu here soon!"
+echo "[*] Downloading the main menu..."
+curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/menu.sh -o /root/menu.sh
+chmod +x /root/menu.sh
+
+echo "[+] Starting your menu now..."
+sleep 2
+bash /root/menu.sh
+
