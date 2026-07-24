@@ -15,10 +15,11 @@ echo "  [1] Manage Hysteria 2"
 echo "  [2] Manage Xray (VMess/VLESS/Trojan)"
 echo "  [3] Security & Firewall Settings"
 echo "  [4] Backup & Restore"
+echo "  [5] License Management"
 echo "  [0] Exit"
 echo ""
 echo "========================================================"
-read -p "Select an option [0-4]: " menu_option
+read -p "Select an option [0-5]: " menu_option
 
 case $menu_option in
     1)
@@ -44,6 +45,12 @@ case $menu_option in
         curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/backup.sh -o /root/modules/backup.sh
         chmod +x /root/modules/backup.sh
         bash /root/modules/backup.sh
+        ;;
+    5)
+        mkdir -p /root/modules
+        curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/license.sh -o /root/modules/license.sh
+        chmod +x /root/modules/license.sh
+        bash /root/modules/license.sh
         ;;
     0)
         clear; exit 0;;
