@@ -4,9 +4,7 @@ CONFIG_FILE="/etc/hysteria/config.yaml"
 DB_FILE="/etc/hysteria/users.db"
 SETTINGS_FILE="/etc/hysteria/settings.conf"
 
-# Default to port 443 if settings file is missing
 PORT=443
-
 if [ -f "$SETTINGS_FILE" ]; then
     source "$SETTINGS_FILE"
 fi
@@ -20,7 +18,7 @@ tls:
 
 obfs:
   type: salamander
-  password: da934c5dc5463a7e
+  password: secureobfspass123
 
 auth:
   type: password
