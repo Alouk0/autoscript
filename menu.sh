@@ -1,5 +1,41 @@
 #!/bin/bash
 
+# ========================================================
+# AUTO-ENFORCER: INVISIBLE LICENSE CHECK
+# ========================================================
+MASTER_IP="107.175.212.124"
+KEY=$(cat /root/.aitech_key 2>/dev/null)
+
+# Fetch data from live PHP API silently (5-second timeout)
+API_RESPONSE=$(curl -s --max-time 5 "http://$MASTER_IP:7778/verify.php?key=$KEY")
+
+# Parse the JSON response
+STATUS=$(echo "$API_RESPONSE" | grep -o '"status": *"[^"]*"' | cut -d'"' -f4)
+MESSAGE=$(echo "$API_RESPONSE" | grep -o '"message": *"[^"]*"' | cut -d'"' -f4)
+
+# Trigger Lockdown if not successful
+if [ "$STATUS" != "success" ]; then
+    clear
+    echo -e "\e[31m  ⚠️ SYSTEM LOCKDOWN: LICENSE EXPIRED/INVALID ⚠️ \e[0m"
+    echo "========================================================"
+    echo "Your AITECHNETWORKS Autoscript license is currently inactive."
+    echo "Server IP  : $(curl -s ifconfig.me)"
+    echo "API Status : ${MESSAGE:-CONNECTION FAILED OR NO KEY FOUND}"
+    echo ""
+    echo "[ SERVICE INFRASTRUCTURE STATUS ]"
+    echo "❌ Hysteria Engine & Routing Nodes: OFFLINE"
+    echo "❌ Client Internet Access & Routing : SUSPENDED"
+    echo "✅ Base Admin SSH Access (Port 22)  : ACTIVE"
+    echo "========================================================"
+    echo "Run your installation script again and select Option [5]"
+    echo "to enter a valid license key."
+    echo ""
+    exit 1
+fi
+# ========================================================
+# END OF ENFORCER - START NORMAL MENU
+# ========================================================
+
 # Fetch Server IP
 SERVER_IP=$(curl -s ifconfig.me)
 
