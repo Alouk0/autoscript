@@ -17,18 +17,44 @@ echo "========================================================"
 read -p "Select an option [0-4]: " hys_option
 
 case $hys_option in
-        1)
+    1)
         clear
-        echo "[*] Installing Hysteria 2 directly from GitHub..."
+        echo "========================================================"
+        echo "          HYSTERIA 2 ADVANCED INSTALLATION              "
+        echo "========================================================"
+        read -p "Enter your Domain/SNI (e.g., vpn.yourdomain.com): " USER_DOMAIN
+        read -p "Enter Port (Default: 53): " USER_PORT
+        USER_PORT=${USER_PORT:-53}
+        read -p "Enter your Email (for SSL registration): " USER_EMAIL
         
-        # Download latest Hysteria 2 Linux AMD64 binary
+        echo "[*] Installing dependencies & Certbot..."
+        apt-get update -y
+        apt-get install -y curl socat certbot
+        
+        echo "[*] Downloading Hysteria 2 core..."
         curl -sSL https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -o /usr/local/bin/hysteria
         chmod +x /usr/local/bin/hysteria
         
-        # Create necessary directories
         mkdir -p /etc/hysteria
         
-        # Create a basic systemd service for Hysteria 2
+        echo "[*] Stopping any service using port 80 for SSL generation..."
+        systemctl stop apache2 nginx 2>/dev/null
+        
+        echo "[*] Obtaining Free SSL/TLS Certificate via Let's Encrypt..."
+        certbot certonly --standalone --preferred-challenges http --agree-tos --register-unsafely-without-email -d "$USER_DOMAIN"
+        
+        if [ -d "/etc/letsencrypt/live/$USER_DOMAIN" ]; then
+            cp /etc/letsencrypt/live/$USER_DOMAIN/fullchain.pem /etc/hysteria/cert.crt
+            cp /etc/letsencrypt/live/$USER_DOMAIN/privkey.pem /etc/hysteria/cert.key
+            echo "[+] SSL Certificates configured successfully!"
+        else
+            echo "[!] Warning: Certbot failed to generate certificate. Using self-signed fallback."
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/hysteria/cert.key -out /etc/hysteria/cert.crt -subj "/CN=$USER_DOMAIN"
+        fi
+        
+        echo "DOMAIN=$USER_DOMAIN" > /etc/hysteria/settings.conf
+        echo "PORT=$USER_PORT" >> /etc/hysteria/settings.conf
+        
         cat << 'EOF' > /etc/systemd/system/hysteria-server.service
 [Unit]
 Description=Hysteria 2 Server
@@ -49,11 +75,10 @@ EOF
         systemctl daemon-reload
         systemctl enable hysteria-server.service
         
-        echo "[+] Hysteria 2 core and system service installed successfully!"
+        echo "[+] Hysteria 2 fully configured with domain $USER_DOMAIN on port $USER_PORT!"
         read -p "Press Enter to return to the Hysteria menu..."
         bash /root/modules/hysteria.sh
         ;;
-
     2)
         clear
         echo "========================================================"
@@ -62,20 +87,22 @@ EOF
         read -p "Enter Username : " USER
         read -p "Duration (Days): " DAYS
         
-        # Generate random 8-character password & calculate expiry
         PASS=$(tr -dc 'a-z0-9' </dev/urandom | head -c 8)
         EXPIRY=$(date -d "+${DAYS} days" +"%b %d, %Y")
         SERVER_IP=$(curl -s ifconfig.me)
         
-        PORT=53
-        SNI="microsoft.com"
+        # Load custom settings if available
+        if [ -f "/etc/hysteria/settings.conf" ]; then
+            source "/etc/hysteria/settings.conf"
+        fi
+        
+        SNI=${DOMAIN:-microsoft.com}
+        PORT=${PORT:-53}
         OBFS="salamander"
         OBFS_PASS="da934c5dc5463a7e"
         
-        # Save to local database
         echo "$USER|$PASS|$EXPIRY|1" >> /etc/hysteria/users.db
         
-        # Pull and run the backend sync script to activate the user live
         curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/hys_sync.sh -o /root/modules/hys_sync.sh
         bash /root/modules/hys_sync.sh
         
@@ -105,10 +132,8 @@ EOF
         echo "========================================================"
         read -p "Enter Username to delete: " DEL_USER
         
-        # Remove user from database
         sed -i "/^$DEL_USER|/d" /etc/hysteria/users.db
         
-        # Sync backend to revoke access immediately
         curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/hys_sync.sh -o /root/modules/hys_sync.sh
         bash /root/modules/hys_sync.sh
         
@@ -121,7 +146,7 @@ EOF
         echo "[*] Removing Hysteria 2..."
         systemctl stop hysteria-server.service 2>/dev/null
         systemctl disable hysteria-server.service 2>/dev/null
-        apt-get remove -y hysteria
+        rm -f /usr/local/bin/hysteria
         rm -rf /etc/hysteria
         echo "[+] Hysteria 2 has been completely removed."
         read -p "Press Enter to return..."
