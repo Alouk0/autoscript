@@ -1,13 +1,18 @@
 #!/bin/bash
 
-# Configuration paths
 CONFIG_FILE="/etc/hysteria/config.yaml"
 DB_FILE="/etc/hysteria/users.db"
-SERVER_IP=$(curl -s ifconfig.me)
+SETTINGS_FILE="/etc/hysteria/settings.conf"
 
-# Start building the Hysteria 2 YAML config base
+# Default to port 443 if settings file is missing
+PORT=443
+
+if [ -f "$SETTINGS_FILE" ]; then
+    source "$SETTINGS_FILE"
+fi
+
 cat << EOF > $CONFIG_FILE
-listen: :53
+listen: :$PORT
 
 tls:
   cert: /etc/hysteria/cert.crt
@@ -22,14 +27,12 @@ auth:
   users:
 EOF
 
-# Read the local database and append each active user
 if [ -f "$DB_FILE" ]; then
     while IFS='|' read -r user pass expiry maxip; do
-        if [ -n "$user" ]; then
+        if [ -n "$user" ] && [ -n "$pass" ]; then
             echo "    $pass: $user" >> $CONFIG_FILE
         fi
     done < "$DB_FILE"
 fi
 
-# Restart Hysteria service to apply changes
-systemctl restart hysteria-server.service 2>/dev/null
+systemctl restart hysteria-server.service
