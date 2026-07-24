@@ -39,14 +39,17 @@ case $hys_option in
         EXPIRY=$(date -d "+${DAYS} days" +"%b %d, %Y")
         SERVER_IP=$(curl -s ifconfig.me)
         
-        # Default Server Settings (Will be dynamic in final install script)
         PORT=53
         SNI="microsoft.com"
         OBFS="salamander"
         OBFS_PASS="da934c5dc5463a7e"
         
-        # Save to local database (Format: Username | Password | Expiry | MaxIP)
+        # Save to local database
         echo "$USER|$PASS|$EXPIRY|1" >> /etc/hysteria/users.db
+        
+        # Pull and run the backend sync script to activate the user live
+        curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/hys_sync.sh -o /root/modules/hys_sync.sh
+        bash /root/modules/hys_sync.sh
         
         clear
         echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
@@ -77,7 +80,11 @@ case $hys_option in
         # Remove user from database
         sed -i "/^$DEL_USER|/d" /etc/hysteria/users.db
         
-        echo "[+] Account $DEL_USER has been removed."
+        # Sync backend to revoke access immediately
+        curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/hys_sync.sh -o /root/modules/hys_sync.sh
+        bash /root/modules/hys_sync.sh
+        
+        echo "[+] Account $DEL_USER has been removed and revoked."
         read -p "Press Enter to return..."
         bash /root/modules/hysteria.sh
         ;;
