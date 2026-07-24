@@ -14,10 +14,11 @@ echo ""
 echo "  [1] Manage Hysteria 2"
 echo "  [2] Manage Xray (VMess/VLESS/Trojan)"
 echo "  [3] Security & Firewall Settings"
+echo "  [4] Backup & Restore"
 echo "  [0] Exit"
 echo ""
 echo "========================================================"
-read -p "Select an option [0-3]: " menu_option
+read -p "Select an option [0-4]: " menu_option
 
 case $menu_option in
     1)
@@ -37,6 +38,12 @@ case $menu_option in
         curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/firewall.sh -o /root/modules/firewall.sh
         chmod +x /root/modules/firewall.sh
         bash /root/modules/firewall.sh
+        ;;
+    4)
+        mkdir -p /root/modules
+        curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/backup.sh -o /root/modules/backup.sh
+        chmod +x /root/modules/backup.sh
+        bash /root/modules/backup.sh
         ;;
     0)
         clear; exit 0;;
