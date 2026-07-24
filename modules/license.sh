@@ -23,37 +23,39 @@ case $lic_option in
     2)
         clear
         KEY=$(cat /root/.aitech_key 2>/dev/null)
+        MASTER_IP="107.175.212.124"
         
-        # Test against our valid Admin Key
-        if [ "$KEY" == "AITECH-ADMIN-777" ]; then
+        echo "[*] Contacting Master License Server..."
+        
+        # Fetch data from your live PHP API
+        API_RESPONSE=$(curl -s --max-time 5 "http://$MASTER_IP:7778/verify.php?key=$KEY")
+        
+        # Parse the JSON response
+        STATUS=$(echo "$API_RESPONSE" | grep -o '"status": *"[^"]*"' | cut -d'"' -f4)
+        MESSAGE=$(echo "$API_RESPONSE" | grep -o '"message": *"[^"]*"' | cut -d'"' -f4)
+        EXPIRY=$(echo "$API_RESPONSE" | grep -o '"expiry": *"[^"]*"' | cut -d'"' -f4)
+        
+        if [ "$STATUS" == "success" ]; then
             echo "========================================================"
             echo " [ SERVER LICENSE STATUS ]"
             echo " Key    : $KEY"
             echo " Status : ACTIVE"
-            echo " Expiry : 2027-01-01"
+            echo " Expiry : $EXPIRY"
             echo "========================================================"
             read -p "Press Enter to return..."
             bash /root/modules/license.sh
         else
             # TRIGGER SYSTEM LOCKDOWN
-            echo -e "\e[31m  ⚠️ SYSTEM LOCKDOWN: LICENSE EXPIRED ⚠️ \e[0m"
+            echo -e "\e[31m  ⚠️ SYSTEM LOCKDOWN: LICENSE EXPIRED/INVALID ⚠️ \e[0m"
             echo "========================================================"
             echo "Your AITECHNETWORKS Autoscript license is currently inactive."
             echo "Server IP  : $(curl -s ifconfig.me)"
-            echo "API Status : LICENSE INVALID OR EXPIRED"
+            echo "API Status : ${MESSAGE:-CONNECTION FAILED}"
             echo ""
             echo "[ SERVICE INFRASTRUCTURE STATUS ]"
             echo "❌ Hysteria Engine & Routing Nodes: OFFLINE"
             echo "❌ Client Internet Access & Routing : SUSPENDED"
             echo "✅ Base Admin SSH Access (Port 22)  : ACTIVE"
-            echo ""
-            echo "[ AUTOMATED SYSTEM NOTICE ]"
-            echo "The License Enforcer has safely suspended all networking and"
-            echo "user routing services to protect the server architecture."
-            echo ""
-            echo "Your client accounts, VPS IP, and configurations are safe."
-            echo "However, no connections will be processed until the license"
-            echo "is formally renewed."
             echo "========================================================"
             read -p "Press Enter to return..."
             bash /root/modules/license.sh
