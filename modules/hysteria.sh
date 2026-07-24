@@ -17,15 +17,43 @@ echo "========================================================"
 read -p "Select an option [0-4]: " hys_option
 
 case $hys_option in
-    1)
+        1)
         clear
-        echo "[*] Initializing Hysteria 2 Installation..."
-        bash <(curl -fsSL https://app.hysteria.network/app/install-ubuntu.sh)
+        echo "[*] Installing Hysteria 2 directly from GitHub..."
+        
+        # Download latest Hysteria 2 Linux AMD64 binary
+        curl -sSL https://github.com/apernet/hysteria/releases/latest/download/hysteria-linux-amd64 -o /usr/local/bin/hysteria
+        chmod +x /usr/local/bin/hysteria
+        
+        # Create necessary directories
         mkdir -p /etc/hysteria
-        echo "[+] Hysteria 2 core installed successfully!"
+        
+        # Create a basic systemd service for Hysteria 2
+        cat << 'EOF' > /etc/systemd/system/hysteria-server.service
+[Unit]
+Description=Hysteria 2 Server
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/etc/hysteria
+ExecStart=/usr/local/bin/hysteria server -c /etc/hysteria/config.yaml
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+        systemctl daemon-reload
+        systemctl enable hysteria-server.service
+        
+        echo "[+] Hysteria 2 core and system service installed successfully!"
         read -p "Press Enter to return to the Hysteria menu..."
         bash /root/modules/hysteria.sh
         ;;
+
     2)
         clear
         echo "========================================================"
