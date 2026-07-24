@@ -99,7 +99,7 @@ EOF
         SNI=${DOMAIN:-microsoft.com}
         PORT=${PORT:-53}
         OBFS="salamander"
-        OBFS_PASS="da934c5dc5463a7e"
+        OBFS_PASS="secureobfspass123"
         
         echo "$USER|$PASS|$EXPIRY|1" >> /etc/hysteria/users.db
         
