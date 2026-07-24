@@ -12,7 +12,7 @@ echo "Status     : ACTIVE"
 echo "========================================================"
 echo ""
 echo "  [1] Manage Hysteria 2"
-echo "  [2] Install Xray (Coming Soon)"
+echo "  [2] Manage Xray (VMess/VLESS/Trojan)"
 echo "  [0] Exit"
 echo ""
 echo "========================================================"
@@ -26,7 +26,11 @@ case $menu_option in
         bash /root/modules/hysteria.sh
         ;;
     2)
-        echo "[*] Module pending..."; sleep 2; bash /root/menu.sh;;
+        mkdir -p /root/modules
+        curl -sSL https://raw.githubusercontent.com/Alouk0/autoscript/main/modules/xray.sh -o /root/modules/xray.sh
+        chmod +x /root/modules/xray.sh
+        bash /root/modules/xray.sh
+        ;;
     0)
         clear; exit 0;;
     *)
