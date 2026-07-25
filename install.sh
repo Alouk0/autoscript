@@ -105,7 +105,7 @@ install_acme() {
   "${ACME}" --install-cert -d "${DOMAIN}" --ecc \
     --fullchain-file "${CERT_DIR}/fullchain.pem" \
     --key-file "${CERT_DIR}/privkey.pem" \
-    --reloadcmd "systemctl reload nginx"
+    --reloadcmd "systemctl reload nginx || systemctl start nginx || true"
 }
 
 configure_xray() {
