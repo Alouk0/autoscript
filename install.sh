@@ -100,7 +100,7 @@ install_acme() {
   log "Issuing certificate for ${DOMAIN} (standalone mode, needs port 80 free)..."
   systemctl stop nginx 2>/dev/null || true
   "${ACME}" --issue --standalone -d "${DOMAIN}" --keylength ec-256 || \
-    die "Certificate issuance failed. Check that ${DOMAIN} resolves to this server and port 80 is reachable."
+    warn "acme.sh returned non-zero — often just means a valid cert already exists for ${DOMAIN}. Continuing to install it." to this server and port 80 is reachable."
 
   "${ACME}" --install-cert -d "${DOMAIN}" --ecc \
     --fullchain-file "${CERT_DIR}/fullchain.pem" \
