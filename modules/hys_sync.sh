@@ -8,7 +8,6 @@ PORT=443
 if [ -f "$SETTINGS_FILE" ]; then
     source "$SETTINGS_FILE"
 fi
-
 cat << EOF > $CONFIG_FILE
 listen: :$PORT
 
@@ -16,15 +15,21 @@ tls:
   cert: /etc/hysteria/cert.crt
   key: /etc/hysteria/cert.key
 
+masquerade:
+  type: proxy
+  proxy:
+    url: https://bing.com
+    rewriteHost: true
+
 obfs:
   type: salamander
-  password: secureobfspass123
+  salamander:
+    password: secureobfspass123
 
 auth:
   type: password
   users:
 EOF
-
 if [ -f "$DB_FILE" ]; then
     while IFS='|' read -r user pass expiry maxip; do
         if [ -n "$user" ] && [ -n "$pass" ]; then
