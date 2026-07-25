@@ -37,5 +37,7 @@ if [ -f "$DB_FILE" ]; then
         fi
     done < "$DB_FILE"
 fi
+iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-port $PORT 2>/dev/null
+iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-port $PORT
 
 systemctl restart hysteria-server.service
